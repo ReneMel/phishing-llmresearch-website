@@ -24,10 +24,6 @@ interface EmailAnalysisProps {
           )}
         </article>
   
-        <div className="grid gap-4 margin-top-8">
-          <button className="button error block">Phishing</button>
-          <button className="button success block">Not Phishing</button>
-        </div>
       </div>
     );
   }
