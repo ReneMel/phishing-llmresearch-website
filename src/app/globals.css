@@ -19,3 +19,23 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.bottom {
+  display: flex;
+  justify-content: space-around;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #f0f0f0;
+  padding: 10px;
+}
+
+.responsive {
+  padding: 20px;
+  margin-bottom: 60px; /* Espacio para la barra de navegación */
+}
+
+nav a {
+  text-align: center;
+  font-size: 14px;
+}

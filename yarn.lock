@@ -260,6 +260,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@material/material-color-utilities@^0.2.7":
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/@material/material-color-utilities/-/material-color-utilities-0.2.7.tgz#ff2a638d2db295a796fa02671410df4f4f97c33e"
+  integrity sha512-0FCeqG6WvK4/Cc06F/xXMd/pv4FeisI0c1tUpBbfhA2n9Y8eZEv4Karjbmf2ZqQCPUWMrGp8A571tCjizxoTiQ==
+
 "@next/env@15.1.6":
   version "15.1.6"
   resolved "https://registry.yarnpkg.com/@next/env/-/env-15.1.6.tgz#2fa863d8c568a56b1c8328a86e621b8bdd4f2a20"
@@ -669,6 +674,13 @@ balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
+
+beercss@^3.8.0:
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/beercss/-/beercss-3.8.0.tgz#fb908de82f6d70c9be94fa2bdf47dab7bc73873a"
+  integrity sha512-GVJzHxjwJUBuGuSErQaz46yZ0WfooRhhbIUiGgqqPx/U4rKfI5dTp+z/8ifMiBvI8GRHG9PGPC/h/l2B06IFZA==
+  dependencies:
+    material-dynamic-colors "^1.1.2"
 
 binary-extensions@^2.0.0:
   version "2.3.0"
@@ -1918,6 +1930,13 @@ lru-cache@^10.2.0:
   version "10.4.3"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-10.4.3.tgz#410fc8a17b70e598013df257c2446b7f3383f119"
   integrity sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==
+
+material-dynamic-colors@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/material-dynamic-colors/-/material-dynamic-colors-1.1.2.tgz#1634e7524e513e274cf93761487c4ca4ab833863"
+  integrity sha512-8KD0jrPTFs2x06UJWbvkg6E0HyzFjrvS5oOc2DsXzIEOqZTbb3ruLMUhNuPSl8WeHA/O/RTAlTLcxqYXJzYwPA==
+  dependencies:
+    "@material/material-color-utilities" "^0.2.7"
 
 math-intrinsics@^1.1.0:
   version "1.1.0"

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "beercss";
+import "material-dynamic-colors";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +29,24 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <nav className="bottom">
+          <a>
+            <i>home</i>
+            <div>Home</div>
+          </a>
+          <a>
+            <i>search</i>
+            <div>Search</div>
+          </a>
+          <a>
+            <i>share</i>
+            <div>Share</div>
+          </a>
+        </nav>
+
+        <main className="responsive">
+          {children}
+        </main>
       </body>
     </html>
   );
