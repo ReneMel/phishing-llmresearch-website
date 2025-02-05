@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
+// import { Pool} from "pg";
+import pool from "@/lib/db";
 
-// Configuración de conexión a la base de datos
-const pool = new Pool({
-  user: "root",
-  host: "localhost",
-  database: "phishingllm",
-  password: "root",
-  port: 5432,
-});
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

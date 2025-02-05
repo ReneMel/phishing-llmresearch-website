@@ -10,6 +10,12 @@ interface Email {
   explanations: { type: string; value: string }[];
 }
 
+interface Response {
+  emailId: number | undefined;
+  isPhishing: boolean;
+  explanationType: string | undefined;
+}
+
 export default function EmailAnalysis() {
   const [email, setEmail] = useState<Email | null>(null);
   const [emailCount, setEmailCount] = useState(0);
@@ -22,6 +28,7 @@ export default function EmailAnalysis() {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [rating, setRating] = useState(0);
   const [suggestion, setSuggestion] = useState("");
+  const [responses, setResponses] = useState<Response[]>([]);
 
   const fetchEmail = (sampleId: number) => {
     fetch(`/api/emails?sampleId=${sampleId}`)
@@ -63,11 +70,13 @@ export default function EmailAnalysis() {
   }, [currentSampleId, emailCount]);
 
   const handleResponse = (isPhishing: boolean) => {
-    console.log({
+    const response: Response = {
       emailId: email?.id,
       isPhishing,
       explanationType: selectedExplanation?.type,
-    });
+    };
+
+    setResponses((prevResponses) => [...prevResponses, response]);
 
     setEmailCount((prev) => {
       const nextCount = prev + 1;
@@ -93,14 +102,45 @@ export default function EmailAnalysis() {
     setShowFeedbackForm(true);
   };
 
-  const handleSubmitFeedback = () => {
-    console.log({
-      rating,
-      suggestion,
-    });
+  const handleSubmitFeedback = async () => {
+    try {
+      // Insert into survey table
+      const surveyResponse = await fetch("/api/surveys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completion_date: new Date().toISOString(),
+          comment: suggestion,
+          rating,
+        }),
+      });
 
-    alert("Thank you for your feedback!");
-    setShowFeedbackForm(false);
+      if (!surveyResponse.ok) {
+        throw new Error("Failed to insert survey data");
+      }
+
+      const surveyData = await surveyResponse.json();
+      const surveyId = surveyData.id;
+
+      // Insert into answers table
+      for (const response of responses) {
+        await fetch("/api/answers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            survey_id: surveyId,
+            email_id: response.emailId,
+            type_explanation: response.explanationType,
+            is_phishing: response.isPhishing,
+          }),
+        });
+      }
+
+      alert("Thank you for your feedback!");
+      setShowFeedbackForm(false);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+    }
   };
 
   if (!email && !showFinishPrompt) {
