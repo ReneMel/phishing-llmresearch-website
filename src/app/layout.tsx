@@ -29,7 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <nav className="bottom">
+        {/* <nav className="bottom">
           <a>
             <i>home</i>
             <div>Home</div>
@@ -42,7 +42,7 @@ export default function RootLayout({
             <i>share</i>
             <div>Share</div>
           </a>
-        </nav>
+        </nav> */}
 
         <main className="responsive">
           {children}

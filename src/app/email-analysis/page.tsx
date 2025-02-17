@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import EmailAnalysisLayout from "./EmailAnalysisLayout";
+import { Rating } from "react-simple-star-rating";
+import { useRouter } from "next/navigation"; // Importa useRouter para redireccionar
+
 
 interface Email {
   id: number;
@@ -17,6 +20,8 @@ interface Response {
 }
 
 export default function EmailAnalysis() {
+
+  const router = useRouter(); 
   const [email, setEmail] = useState<Email | null>(null);
   const [emailCount, setEmailCount] = useState(0);
   const [currentSampleId, setCurrentSampleId] = useState(1);
@@ -29,6 +34,11 @@ export default function EmailAnalysis() {
   const [rating, setRating] = useState(0);
   const [suggestion, setSuggestion] = useState("");
   const [responses, setResponses] = useState<Response[]>([]);
+
+  // Captura el rating
+  const handleRating = (rate: number) => {
+    setRating(rate);
+  };
 
   const fetchEmail = (sampleId: number) => {
     fetch(`/api/emails?sampleId=${sampleId}`)
@@ -104,7 +114,6 @@ export default function EmailAnalysis() {
 
   const handleSubmitFeedback = async () => {
     try {
-      // Insert into survey table
       const surveyResponse = await fetch("/api/surveys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -114,15 +123,14 @@ export default function EmailAnalysis() {
           rating,
         }),
       });
-
+  
       if (!surveyResponse.ok) {
         throw new Error("Failed to insert survey data");
       }
-
+  
       const surveyData = await surveyResponse.json();
       const surveyId = surveyData.id;
-
-      // Insert into answers table
+  
       for (const response of responses) {
         await fetch("/api/answers", {
           method: "POST",
@@ -135,9 +143,22 @@ export default function EmailAnalysis() {
           }),
         });
       }
-
-      alert("Thank you for your feedback!");
-      setShowFeedbackForm(false);
+  
+      // ✅ Muestra un mensaje de BeerCSS (snackbar)
+      const snackbar = document.createElement("div");
+      snackbar.className = "snackbar show"; // Aplica la clase de BeerCSS
+      snackbar.textContent = "Thank you for your feedback!";
+      document.body.appendChild(snackbar);
+  
+      // ✅ Elimina el mensaje después de 2 segundos y redirige a "/"
+      setTimeout(() => {
+        snackbar.classList.remove("show");
+        setTimeout(() => {
+          snackbar.remove();
+          router.push("/"); // Redirección a "/"
+          // setShowFeedbackForm(false);
+        }, 500); // Permite la animación antes de eliminarlo
+      }, 2000);
     } catch (error) {
       console.error("Error submitting feedback:", error);
     }
@@ -150,36 +171,44 @@ export default function EmailAnalysis() {
   if (showFeedbackForm) {
     return (
       <div className="margin-top-8 text-center">
-        <p className="text-lg">Thank you for your collaboration!</p>
-        <div className="margin-top-4">
-          <label>
-            <p>How much do you think the explanations helped in your decision-making? (1 to 5)</p>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              value={rating}
-              onChange={(e) => setRating(Number(e.target.value))}
-              className="input block mx-auto"
-            />
-          </label>
+        <p className="text-2xl">Thank you for your collaboration!</p>
 
-          <label className="margin-top-4 block">
-            <p>What would you like to be added to the explanation?</p>
-            <textarea
-              value={suggestion}
-              onChange={(e) => setSuggestion(e.target.value)}
-              className="textarea block mx-auto"
-              rows={3}
-            />
+        {/* Rating Selection */}
+        <div className="margin-top-4">
+          <label className="block text-lg">
+            How much do you think the explanations helped in your decision-making?
           </label>
+          <div className="rating-container">
+            <Rating
+              onClick={handleRating}
+              initialValue={rating}
+              size={30}
+              allowFraction
+            />
+          </div>
         </div>
 
+        {/* Feedback Text Area */}
+        <div className="margin-top-6">
+          <label className="block text-lg">
+            What would you like to be added to the explanation?
+          </label>
+          <textarea
+            value={suggestion}
+            onChange={(e) => setSuggestion(e.target.value)}
+            className="textarea block mx-auto text-lg"
+            rows={4}
+            placeholder="Write your feedback here..."
+          />
+        </div>
+
+        {/* Submit Button */}
         <button
-          className="button primary block margin-top-6 mx-auto"
+          className="button primary large block margin-top-6 mx-auto"
           onClick={handleSubmitFeedback}
+          disabled={rating === 0}
         >
-          Submit Data
+          Submit Feedback
         </button>
       </div>
     );
@@ -206,22 +235,16 @@ export default function EmailAnalysis() {
   return (
     <>
       <EmailAnalysisLayout
-        emailNumber={email.id}
-        emailText={email.text}
+        emailNumber={email?.id || 0}
+        emailText={email?.text || "No email available"}
         explanationText={selectedExplanation?.value || "No explanation available"}
       />
 
       <div className="grid gap-4 margin-top-8">
-        <button
-          className="button error block"
-          onClick={() => handleResponse(true)}
-        >
+        <button className="button error block" onClick={() => handleResponse(true)}>
           Phishing
         </button>
-        <button
-          className="button success block"
-          onClick={() => handleResponse(false)}
-        >
+        <button className="button success block" onClick={() => handleResponse(false)}>
           Not Phishing
         </button>
       </div>

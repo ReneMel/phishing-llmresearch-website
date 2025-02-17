@@ -28,7 +28,7 @@ export default function Home() {
             </p>
             
           </div>
-            <Link href="/email-analysis">
+            <Link href="/email-analysis ">
               <button className="items-center">
               Lets Start!
               </button>
