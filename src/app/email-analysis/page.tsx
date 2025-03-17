@@ -79,29 +79,32 @@ export default function EmailAnalysis() {
     fetchEmail(currentSampleId);
   }, [currentSampleId, emailCount]);
 
-  const handleResponse = (isPhishing: boolean) => {
-    const response: Response = {
-      emailId: email?.id,
-      isPhishing,
-      explanationType: selectedExplanation?.type,
-    };
-
-    setResponses((prevResponses) => [...prevResponses, response]);
-
-    setEmailCount((prev) => {
-      const nextCount = prev + 1;
-
-      if (nextCount % 10 === 0) {
-        setShowFinishPrompt(true);
-      } else {
+    const handleResponse = (isPhishing: boolean) => {
+      const response: Response = {
+        emailId: email?.id,
+        isPhishing,
+        explanationType: selectedExplanation?.type,
+      };
+    
+      setResponses((prevResponses) => [...prevResponses, response]);
+    
+      setEmailCount((prev) => {
+        const nextCount = prev + 1;
+      
         if (nextCount % 10 === 0) {
-          setCurrentSampleId((prevSampleId) => prevSampleId + 1);
+          setShowFinishPrompt(true);
+          
+          // 🔥 Aseguramos que incrementa de 1 en 1
+          setCurrentSampleId((prevSampleId) => {
+            console.log(`Changing sample ID from ${prevSampleId} to ${prevSampleId + 1}`);
+            return prevSampleId + 1;
+          });
         }
-      }
-
-      return nextCount;
-    });
-  };
+      
+        return nextCount;
+      });
+    };
+  
 
   const handleContinue = () => {
     setShowFinishPrompt(false);
@@ -251,3 +254,4 @@ export default function EmailAnalysis() {
     </>
   );
 }
+  
