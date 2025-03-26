@@ -18,7 +18,7 @@ export default function Home() {
             <h2 className="text-2xl font-semibold mt-6">What we ask you to do:</h2>
             <p className="mt-2">
               We ask you to review emails and determine whether, in your opinion, they are phishing or not. 
-              Sometimes, we will also provide an AI-generated explanation to help with your decision. If no explanation is provided, simply base your judgment on the content of the email.
+              We will also provide an AI-generated explanation to help with your decision. If no explanation is provided, simply base your judgment on the content of the email.
             </p>
 
             <h2 className="text-2xl font-semibold mt-6">What is a phishing email:</h2>

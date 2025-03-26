@@ -45,7 +45,7 @@ const ConfirmationScreen = () => {
           Muchas Gracias
         </Typography>
         <Typography variant="h6" sx={{ mt: 2 }}>
-          G
+          
         </Typography> THANK YOU FOR YOUR COOPERATION
         <Typography variant="body1" sx={{ mt: 2 }}>
           Your response has been succesfully saved. 

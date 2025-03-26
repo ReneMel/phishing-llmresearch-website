@@ -226,65 +226,81 @@ export default function EmailAnalysis() {
 
   if (showFeedbackForm) {
     return (
-      <div className="margin-top-8 text-center">
-        <p className="text-2xl">Thank you for your collaboration!</p>
+      <div className="center absolute fill">
+  <div className="card p-6 elevation-3 max-w-600 w-100 text-center">
+    <p className="text-2xl mb-4">Thank you for your collaboration!</p>
 
-        {/* Rating Selection */}
-        <div className="margin-top-4">
-          <label className="block text-lg">
-            How much do you think the explanations helped in your decision-making?
-          </label>
-          <div className="rating-container">
-            <Rating
-              onClick={handleRating}
-              initialValue={rating}
-              size={30}
-              allowFraction
-            />
-          </div>
-        </div>
-
-        {/* Feedback Text Area */}
-        <div className="margin-top-6">
-          <label className="block text-lg">
-            What would you like to be added to the explanation?
-          </label>
-          <textarea
-            value={suggestion}
-            onChange={(e) => setSuggestion(e.target.value)}
-            className="textarea block mx-auto text-lg"
-            rows={4}
-            placeholder="Write your feedback here..."
-          />
-        </div>
-
-        {/* Submit Button */}
-        <button
-          className="button primary large block margin-top-6 mx-auto"
-          onClick={handleSubmitFeedback}
-          disabled={rating === 0}
-        >
-          Submit Feedback
-        </button>
+    {/* Rating Selection */}
+    <div className="mb-6">
+      <label className="block text-lg mb-2">
+        How much do you think the explanations helped in your decision-making?
+      </label>
+      <div className="rating-container">
+        <Rating
+          onClick={handleRating}
+          initialValue={rating}
+          size={30}
+          allowFraction
+        />
       </div>
+    </div>
+
+    {/* Feedback Text Area */}
+    <div className="mb-6">
+      <label className="block text-lg mb-2">
+        What would you like to be added to the explanation?
+      </label>
+      <textarea
+        value={suggestion}
+        onChange={(e) => setSuggestion(e.target.value)}
+        className="textarea block mx-auto text-lg w-100 max-w-500"
+        rows={4}
+        placeholder="Write your feedback here..."
+      />
+    </div>
+
+    {/* Submit Button */}
+    <button
+      className="button primary large block mx-auto"
+      onClick={handleSubmitFeedback}
+      disabled={rating === 0}
+    >
+      Submit Feedback
+    </button>
+  </div>
+</div>
+
     );
   }
 
   if (showFinishPrompt) {
     return (
-      <div className="margin-top-8">
-        <p>Thanks for your collaboration!</p>
-        <p>If you want to continue, click "Continue", otherwise click "Finish".</p>
+<div className="center absolute fill">
+  <div className="card p-6 elevation-3 max-w-400 text-center ">
+    <h4 className="mb-2">Thank you for your help!</h4>
+    <p className="mb-4">If you want to continue answering, click "Continue", otherwise click "Finish".</p>
 
-        <div className="grid gap-4 margin-top-4">
-          <button className="button primary" onClick={handleContinue}>
-            Continue
-          </button>
-          <button className="button error" onClick={handleFinish}>
-            Finish
-          </button>
-        </div>
-      </div>
+    <div
+      className="flex column gap-3"
+      style={{
+        display: "flex",
+        
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        marginTop: "1rem",
+      }}
+    >
+      <button className="w-75 button primary" onClick={handleContinue}>
+        Continue
+      </button>
+      <button className="w-75 button error" onClick={handleFinish}>
+        Finish
+      </button>
+    </div>
+  </div>
+</div>
+
     );
   }
 
@@ -297,11 +313,12 @@ export default function EmailAnalysis() {
       />
 
       <div className="grid gap-4 margin-top-8">
-        <button className="button error block" onClick={() => handleResponse(true)}>
-          Phishing
-        </button>
         <button className="button success block" onClick={() => handleResponse(false)}>
           Not Phishing
+        </button>
+        
+        <button className="button error block" onClick={() => handleResponse(true)}>
+          Phishing
         </button>
       </div>
     </>
