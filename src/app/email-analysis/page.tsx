@@ -76,40 +76,92 @@ export default function EmailAnalysis() {
   };
 
   useEffect(() => {
-    fetchEmail(currentSampleId);
-  }, [currentSampleId, emailCount]);
+    if (emailCount > 0 && emailCount % 10 === 0) {
+      setShowFinishPrompt(true);
+    }
+  }, [emailCount]);
+  
+  useEffect(() => {
+    if (!showFinishPrompt) {
+      fetchEmail(currentSampleId);
+    }
+  }, [currentSampleId]);
+  
+  // const handleResponse = (isPhishing: boolean) => {
+  //   const response: Response = {
+  //     emailId: email?.id,
+  //     isPhishing,
+  //     explanationType: selectedExplanation?.type,
+  //   };
+  
+  //   setResponses((prevResponses) => [...prevResponses, response]);
+  
+  //   setEmailCount((prev) => prev + 1);
+  // };
 
-    const handleResponse = (isPhishing: boolean) => {
-      const response: Response = {
-        emailId: email?.id,
-        isPhishing,
-        explanationType: selectedExplanation?.type,
-      };
-    
-      setResponses((prevResponses) => [...prevResponses, response]);
-    
-      setEmailCount((prev) => {
-        const nextCount = prev + 1;
-      
-        if (nextCount % 10 === 0) {
-          setShowFinishPrompt(true);
-          
-          // 🔥 Aseguramos que incrementa de 1 en 1
-          setCurrentSampleId((prevSampleId) => {
-            console.log(`Changing sample ID from ${prevSampleId} to ${prevSampleId + 1}`);
-            return prevSampleId + 1;
-          });
-        }
-      
-        return nextCount;
-      });
+  const handleResponse = (isPhishing: boolean) => {
+    const response: Response = {
+      emailId: email?.id,
+      isPhishing,
+      explanationType: selectedExplanation?.type,
     };
   
-
+    setResponses((prevResponses) => [...prevResponses, response]);
+  
+    setEmailCount((prev) => {
+      const nextCount = prev + 1;
+  
+      if (nextCount % 10 === 0) {
+        setShowFinishPrompt(true);
+      } else {
+        // 🔥 Llamamos a fetchEmail con el mismo currentSampleId si no hemos completado 10 emails
+        fetchEmail(currentSampleId);
+      }
+  
+      return nextCount;
+    });
+  };
+  
+  
   const handleContinue = () => {
     setShowFinishPrompt(false);
-    fetchEmail(currentSampleId);
+    setCurrentSampleId((prevSampleId) => {
+      console.log(`Changing sample ID from ${prevSampleId} to ${prevSampleId + 1}`);
+      return prevSampleId + 1;
+    });
   };
+  
+  //   const handleResponse = (isPhishing: boolean) => {
+  //     const response: Response = {
+  //       emailId: email?.id,
+  //       isPhishing,
+  //       explanationType: selectedExplanation?.type,
+  //     };
+    
+  //     setResponses((prevResponses) => [...prevResponses, response]);
+    
+  //     setEmailCount((prev) => {
+  //       const nextCount = prev + 1;
+      
+  //       if (nextCount % 10 === 0) {
+  //         setShowFinishPrompt(true);
+          
+  //         // 🔥 Aseguramos que incrementa de 1 en 1
+  //         setCurrentSampleId((prevSampleId) => {
+  //           console.log(`Changing sample ID from ${prevSampleId} to ${prevSampleId + 1}`);
+  //           return prevSampleId + 1;
+  //         });
+  //       }
+      
+  //       return nextCount;
+  //     });
+  //   };
+  
+
+  // const handleContinue = () => {
+  //   setShowFinishPrompt(false);
+  //   fetchEmail(currentSampleId);
+  // };
 
   const handleFinish = () => {
     setShowFeedbackForm(true);
@@ -148,20 +200,21 @@ export default function EmailAnalysis() {
       }
   
       // ✅ Muestra un mensaje de BeerCSS (snackbar)
-      const snackbar = document.createElement("div");
-      snackbar.className = "snackbar show"; // Aplica la clase de BeerCSS
-      snackbar.textContent = "Thank you for your feedback!";
-      document.body.appendChild(snackbar);
+      // const snackbar = document.createElement("div");
+      // snackbar.className = "snackbar show"; // Aplica la clase de BeerCSS
+      // snackbar.textContent = "Thank you for your feedback!";
+      // document.body.appendChild(snackbar);
   
-      // ✅ Elimina el mensaje después de 2 segundos y redirige a "/"
-      setTimeout(() => {
-        snackbar.classList.remove("show");
-        setTimeout(() => {
-          snackbar.remove();
-          router.push("/"); // Redirección a "/"
-          // setShowFeedbackForm(false);
-        }, 500); // Permite la animación antes de eliminarlo
-      }, 2000);
+      // // ✅ Elimina el mensaje después de 2 segundos y redirige a "/"
+      // setTimeout(() => {
+      //   snackbar.classList.remove("show");
+      //   setTimeout(() => {
+      //     snackbar.remove();
+      //     router.push("/"); // Redirección a "/"
+      //     // setShowFeedbackForm(false);
+      //   }, 500); // Permite la animación antes de eliminarlo
+      // }, 2000);
+      router.push("/confirmation");
     } catch (error) {
       console.error("Error submitting feedback:", error);
     }
