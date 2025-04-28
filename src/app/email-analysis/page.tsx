@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import EmailAnalysisLayout from "./EmailAnalysisLayout";
 import { Rating } from "react-simple-star-rating";
-import { useRouter } from "next/navigation"; // Importa useRouter para redireccionar
-
+import { useRouter } from "next/navigation";
 
 interface Email {
   id: number;
@@ -20,152 +19,136 @@ interface Response {
 }
 
 export default function EmailAnalysis() {
-
-  const router = useRouter(); 
+  const router = useRouter();
+  const [currentBatch, setCurrentBatch] = useState<Email[]>([]);
+  const [currentEmailIndex, setCurrentEmailIndex] = useState(0);
   const [email, setEmail] = useState<Email | null>(null);
-  const [emailCount, setEmailCount] = useState(0);
-  const [currentSampleId, setCurrentSampleId] = useState(1);
-  const [selectedExplanation, setSelectedExplanation] = useState<{
-    type: string;
-    value: string;
-  } | null>(null);
+  const [usedSampleIds, setUsedSampleIds] = useState<number[]>([]);
+  const [maxSampleId, setMaxSampleId] = useState<number | null>(null);
+  const [selectedExplanation, setSelectedExplanation] = useState<{ type: string; value: string } | null>(null);
   const [showFinishPrompt, setShowFinishPrompt] = useState(false);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [rating, setRating] = useState(0);
   const [suggestion, setSuggestion] = useState("");
   const [responses, setResponses] = useState<Response[]>([]);
 
-  // Captura el rating
-  const handleRating = (rate: number) => {
-    setRating(rate);
+  const handleRating = (rate: number) => setRating(rate);
+
+  useEffect(() => {
+    const fetchMaxSampleId = async () => {
+      const response = await fetch("/api/emails/max-sample-id");
+      const data = await response.json();
+      console.log("Max Sample ID fetched:", data.maxSampleId);
+      setMaxSampleId(data.maxSampleId);
+    };
+
+    fetchMaxSampleId();
+  }, []);
+
+  useEffect(() => {
+    if (maxSampleId !== null) {
+      fetchNextGroup();
+    }
+  }, [maxSampleId]);
+
+  const getNextSampleId = (): number | null => {
+    if (maxSampleId === null) return null;
+
+    const availableSampleIds = Array.from({ length: maxSampleId }, (_, i) => i + 1).filter(id => !usedSampleIds.includes(id));
+    if (availableSampleIds.length === 0) return null;
+
+    let randomSampleId: number | null = null;
+
+    while (true) {
+      const candidate = Math.floor(Math.random() * maxSampleId) + 1;
+      if (!usedSampleIds.includes(candidate)) {
+        randomSampleId = candidate;
+        break;
+      }
+    }
+
+    setUsedSampleIds(prev => [...prev, randomSampleId!]);
+    return randomSampleId;
   };
 
-  const fetchEmail = (sampleId: number) => {
-    fetch(`/api/emails?sampleId=${sampleId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.length > 0) {
-          const emailIndex = emailCount % 10;
-          const currentEmail = data[emailIndex];
+  const fetchNextGroup = () => {
+    const nextSampleId = getNextSampleId();
+    if (nextSampleId !== null) {
+      fetchEmailBatch(nextSampleId);
+    } else {
+      setEmail(null); // Ya no hay más sampleIds disponibles
+    }
+  };
 
-          if (currentEmail) {
-            const explanations = [
-              { type: "llama_shap_explanation", value: currentEmail.llama_shap_explanation },
-              { type: "llama_lime_explanation", value: currentEmail.llama_lime_explanation },
-              { type: "llama_combined_explanation", value: currentEmail.llama_combined_explanation },
-              { type: "llama_raw_explanation", value: currentEmail.llama_raw_explanation },
-            ].filter((explanation) => explanation.value);
+  const fetchEmailBatch = async (sampleId: number) => {
+    const response = await fetch(`/api/emails?sampleId=${sampleId}`);
+    const data = await response.json();
 
-            setEmail({
-              id: currentEmail.id,
-              sample_id: currentEmail.sample_id,
-              text: currentEmail.text,
-              explanations,
-            });
+    if (data.length > 0) {
+      // Aleatorizar 30% sin explicación
+      const numWithoutExplanation = Math.floor(data.length * 0.3);
+      const indicesToHide = new Set<number>();
+      while (indicesToHide.size < numWithoutExplanation) {
+        indicesToHide.add(Math.floor(Math.random() * data.length));
+      }
 
-            const randomExplanation =
-              explanations[Math.floor(Math.random() * explanations.length)];
-            setSelectedExplanation(randomExplanation);
-          } else {
-            setEmail(null);
-          }
-        } else {
-          setEmail(null);
-        }
+      const processedBatch = data.map((email: any, index: number) => {
+        const explanations = [
+          { type: "llama_shap_explanation", value: email.llama_shap_explanation },
+          { type: "llama_lime_explanation", value: email.llama_lime_explanation },
+          { type: "llama_combined_explanation", value: email.llama_combined_explanation },
+          { type: "llama_raw_explanation", value: email.llama_raw_explanation },
+        ].filter(e => e.value);
+
+        return {
+          id: email.id,
+          sample_id: email.sample_id,
+          text: email.text,
+          explanations: indicesToHide.has(index) ? [] : explanations,
+        };
       });
-  };
 
-  useEffect(() => {
-    if (emailCount > 0 && emailCount % 10 === 0) {
-      setShowFinishPrompt(true);
+      setCurrentBatch(processedBatch);
+      setCurrentEmailIndex(0);
+      setEmail(processedBatch[0]);
+      setSelectedExplanation(processedBatch[0].explanations.length > 0
+        ? processedBatch[0].explanations[Math.floor(Math.random() * processedBatch[0].explanations.length)]
+        : null);
+    } else {
+      setEmail(null);
     }
-  }, [emailCount]);
-  
-  useEffect(() => {
-    if (!showFinishPrompt) {
-      fetchEmail(currentSampleId);
-    }
-  }, [currentSampleId]);
-  
-  // const handleResponse = (isPhishing: boolean) => {
-  //   const response: Response = {
-  //     emailId: email?.id,
-  //     isPhishing,
-  //     explanationType: selectedExplanation?.type,
-  //   };
-  
-  //   setResponses((prevResponses) => [...prevResponses, response]);
-  
-  //   setEmailCount((prev) => prev + 1);
-  // };
+  };
 
   const handleResponse = (isPhishing: boolean) => {
     const response: Response = {
       emailId: email?.id,
       isPhishing,
-      explanationType: selectedExplanation?.type,
+      explanationType: selectedExplanation ? selectedExplanation.type : "no_explanation", // 🔥 Aquí está la clave
     };
   
-    setResponses((prevResponses) => [...prevResponses, response]);
+    setResponses(prev => [...prev, response]);
   
-    setEmailCount((prev) => {
-      const nextCount = prev + 1;
+    const nextIndex = currentEmailIndex + 1;
   
-      if (nextCount % 10 === 0) {
-        setShowFinishPrompt(true);
-      } else {
-        // 🔥 Llamamos a fetchEmail con el mismo currentSampleId si no hemos completado 10 emails
-        fetchEmail(currentSampleId);
-      }
-  
-      return nextCount;
-    });
+    if (nextIndex < currentBatch.length) {
+      const nextEmail = currentBatch[nextIndex];
+      setCurrentEmailIndex(nextIndex);
+      setEmail(nextEmail);
+      setSelectedExplanation(nextEmail.explanations.length > 0
+        ? nextEmail.explanations[Math.floor(Math.random() * nextEmail.explanations.length)]
+        : null);
+    } else {
+      setShowFinishPrompt(true);
+    }
   };
   
-  
+
   const handleContinue = () => {
     setShowFinishPrompt(false);
-    setCurrentSampleId((prevSampleId) => {
-      console.log(`Changing sample ID from ${prevSampleId} to ${prevSampleId + 1}`);
-      return prevSampleId + 1;
-    });
+    fetchNextGroup();
   };
-  
-  //   const handleResponse = (isPhishing: boolean) => {
-  //     const response: Response = {
-  //       emailId: email?.id,
-  //       isPhishing,
-  //       explanationType: selectedExplanation?.type,
-  //     };
-    
-  //     setResponses((prevResponses) => [...prevResponses, response]);
-    
-  //     setEmailCount((prev) => {
-  //       const nextCount = prev + 1;
-      
-  //       if (nextCount % 10 === 0) {
-  //         setShowFinishPrompt(true);
-          
-  //         // 🔥 Aseguramos que incrementa de 1 en 1
-  //         setCurrentSampleId((prevSampleId) => {
-  //           console.log(`Changing sample ID from ${prevSampleId} to ${prevSampleId + 1}`);
-  //           return prevSampleId + 1;
-  //         });
-  //       }
-      
-  //       return nextCount;
-  //     });
-  //   };
-  
 
-  // const handleContinue = () => {
-  //   setShowFinishPrompt(false);
-  //   fetchEmail(currentSampleId);
-  // };
-
-  const handleFinish = () => {
-    setShowFeedbackForm(true);
-  };
+  const handleFinish = () => setShowFeedbackForm(true);
 
   const handleSubmitFeedback = async () => {
     try {
@@ -178,14 +161,14 @@ export default function EmailAnalysis() {
           rating,
         }),
       });
-  
+
       if (!surveyResponse.ok) {
         throw new Error("Failed to insert survey data");
       }
-  
+
       const surveyData = await surveyResponse.json();
       const surveyId = surveyData.id;
-  
+
       for (const response of responses) {
         await fetch("/api/answers", {
           method: "POST",
@@ -198,22 +181,7 @@ export default function EmailAnalysis() {
           }),
         });
       }
-  
-      // ✅ Muestra un mensaje de BeerCSS (snackbar)
-      // const snackbar = document.createElement("div");
-      // snackbar.className = "snackbar show"; // Aplica la clase de BeerCSS
-      // snackbar.textContent = "Thank you for your feedback!";
-      // document.body.appendChild(snackbar);
-  
-      // // ✅ Elimina el mensaje después de 2 segundos y redirige a "/"
-      // setTimeout(() => {
-      //   snackbar.classList.remove("show");
-      //   setTimeout(() => {
-      //     snackbar.remove();
-      //     router.push("/"); // Redirección a "/"
-      //     // setShowFeedbackForm(false);
-      //   }, 500); // Permite la animación antes de eliminarlo
-      // }, 2000);
+
       router.push("/confirmation");
     } catch (error) {
       console.error("Error submitting feedback:", error);
@@ -227,80 +195,69 @@ export default function EmailAnalysis() {
   if (showFeedbackForm) {
     return (
       <div className="center absolute fill">
-  <div className="card p-6 elevation-3 max-w-600 w-100 text-center">
-    <p className="text-2xl mb-4">Thank you for your collaboration!</p>
-
-    {/* Rating Selection */}
-    <div className="mb-6">
-      <label className="block text-lg mb-2">
-        How much do you think the explanations helped in your decision-making?
-      </label>
-      <div className="rating-container">
-        <Rating
-          onClick={handleRating}
-          initialValue={rating}
-          size={30}
-          allowFraction
-        />
+        <div className="card p-6 elevation-3 max-w-600 w-100 text-center">
+          <p className="text-2xl mb-4">Thank you for your collaboration!</p>
+  
+          {/* Rating Selection */}
+          <div className="mb-6">
+            <label className="block text-lg mb-2">
+              How much do you think the explanations helped in your decision-making?
+            </label>
+            <div className="rating-container">
+              <Rating
+                onClick={handleRating}
+                initialValue={rating}
+                size={30}
+                allowFraction
+              />
+            </div>
+          </div>
+  
+          {/* Feedback Text Area */}
+          <div className="mb-6">
+            <label className="block text-lg mb-2">
+              What would you like to be added to the explanation?
+            </label>
+            <textarea
+              value={suggestion}
+              onChange={(e) => setSuggestion(e.target.value)}
+              className="textarea block mx-auto text-lg w-100 max-w-500"
+              rows={4}
+              placeholder="Write your feedback here..."
+            />
+          </div>
+  
+          {/* Submit Button */}
+          <button
+            className="button primary large block mx-auto"
+            onClick={handleSubmitFeedback}
+            disabled={rating === 0}
+          >
+            Submit Feedback
+          </button>
+        </div>
       </div>
-    </div>
-
-    {/* Feedback Text Area */}
-    <div className="mb-6">
-      <label className="block text-lg mb-2">
-        What would you like to be added to the explanation?
-      </label>
-      <textarea
-        value={suggestion}
-        onChange={(e) => setSuggestion(e.target.value)}
-        className="textarea block mx-auto text-lg w-100 max-w-500"
-        rows={4}
-        placeholder="Write your feedback here..."
-      />
-    </div>
-
-    {/* Submit Button */}
-    <button
-      className="button primary large block mx-auto"
-      onClick={handleSubmitFeedback}
-      disabled={rating === 0}
-    >
-      Submit Feedback
-    </button>
-  </div>
-</div>
-
     );
   }
+  
 
   if (showFinishPrompt) {
     return (
-<div className="center absolute fill">
-  <div className="card p-6 elevation-3 max-w-400 text-center ">
-    <h4 className="mb-2">Thank you for your help!</h4>
-    <p className="mb-4">If you want to continue answering, click "Continue", otherwise click "Finish".</p>
+      <div className="center absolute fill">
+        <div className="card p-6 elevation-3 max-w-400 text-center ">
+          <h4 className="mb-2">Thank you for your help!</h4>
+          <p className="mb-4">If you want to continue answering, click "Continue", otherwise click "Finish".</p>
 
-    <div
-      className="flex column gap-3"
-      style={{
-        display: "flex",
-        
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-        marginTop: "1rem",
-      }}
-    >
-      <button className="w-75 button primary" onClick={handleContinue}>
-        Continue
-      </button>
-      <button className="w-75 button error" onClick={handleFinish}>
-        Finish
-      </button>
-    </div>
-  </div>
-</div>
-
+          <div className="flex column gap-3">
+            <button className="w-75 button primary" onClick={handleContinue}>
+              Continue
+            </button>
+            <button className="w-75 button error" onClick={handleFinish}>
+              Finish
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -309,14 +266,14 @@ export default function EmailAnalysis() {
       <EmailAnalysisLayout
         emailNumber={email?.id || 0}
         emailText={email?.text || "No email available"}
-        explanationText={selectedExplanation?.value || "No explanation available"}
+        explanationText={selectedExplanation?.value || "En este caso no hay explicación. Solicitamos que mediante su conocimiento decida si es phishing o no."}
       />
 
       <div className="grid gap-4 margin-top-8">
         <button className="button success block" onClick={() => handleResponse(false)}>
           Not Phishing
         </button>
-        
+
         <button className="button error block" onClick={() => handleResponse(true)}>
           Phishing
         </button>
@@ -324,4 +281,3 @@ export default function EmailAnalysis() {
     </>
   );
 }
-  
