@@ -1,18 +1,16 @@
 interface EmailAnalysisProps {
-  emailNumber: number;
   emailText: string;
   explanationText?: string;
 }
 
 export default function EmailAnalysisLayout({
-  emailNumber,
   emailText,
   explanationText,
 }: EmailAnalysisProps) {
   return (
     <div className="padding-8">
       <article className="card outlined padding-6">
-        <h2 className="text-xl margin-bottom-4">Email #{emailNumber}</h2>
+        <h2 className="text-xl margin-bottom-4">Email Text</h2>
 
         <pre className="code">
           <code>{emailText}</code>

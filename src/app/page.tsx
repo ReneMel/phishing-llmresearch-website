@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react";
-import Image from "next/image";
+// import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -62,7 +62,7 @@ export default function Home() {
               }`}
               disabled={!accepted}
             >
-              Let's Start!
+              Let&apos;s Start!
             </button>
           </Link>
         </div>

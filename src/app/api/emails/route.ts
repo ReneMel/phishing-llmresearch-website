@@ -21,7 +21,8 @@ export async function GET(request: Request) {
     const result = await pool.query(query, [sampleId]);
     return NextResponse.json(result.rows);
   } catch (error) {
-    return NextResponse.json({ error: error?.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });  
   }
 }
   

@@ -18,6 +18,16 @@ interface Response {
   explanationType: string | undefined;
 }
 
+interface RawEmail {
+  id: number;
+  sample_id: number;
+  text: string;
+  llama_shap_explanation: string;
+  llama_lime_explanation: string;
+  llama_combined_explanation: string;
+  llama_raw_explanation: string;
+}
+
 export default function EmailAnalysis() {
   const router = useRouter();
   const [currentBatch, setCurrentBatch] = useState<Email[]>([]);
@@ -38,12 +48,21 @@ export default function EmailAnalysis() {
     const fetchMaxSampleId = async () => {
       const response = await fetch("/api/emails/max-sample-id");
       const data = await response.json();
-      console.log("Max Sample ID fetched:", data.maxSampleId);
       setMaxSampleId(data.maxSampleId);
     };
 
     fetchMaxSampleId();
   }, []);
+
+  const fetchNextGroup = () => {
+    const nextSampleId = getNextSampleId();
+    if (nextSampleId !== null) {
+      fetchEmailBatch(nextSampleId);
+    } else {
+      setEmail(null); // Ya no hay más sampleIds disponibles
+    }
+  };
+
 
   useEffect(() => {
     if (maxSampleId !== null) {
@@ -71,14 +90,6 @@ export default function EmailAnalysis() {
     return randomSampleId;
   };
 
-  const fetchNextGroup = () => {
-    const nextSampleId = getNextSampleId();
-    if (nextSampleId !== null) {
-      fetchEmailBatch(nextSampleId);
-    } else {
-      setEmail(null); // Ya no hay más sampleIds disponibles
-    }
-  };
 
   const fetchEmailBatch = async (sampleId: number) => {
     const response = await fetch(`/api/emails?sampleId=${sampleId}`);
@@ -92,7 +103,7 @@ export default function EmailAnalysis() {
         indicesToHide.add(Math.floor(Math.random() * data.length));
       }
 
-      const processedBatch = data.map((email: any, index: number) => {
+      const processedBatch = (data as RawEmail[]).map((email, index) => {
         const explanations = [
           { type: "llama_shap_explanation", value: email.llama_shap_explanation },
           { type: "llama_lime_explanation", value: email.llama_lime_explanation },
@@ -123,7 +134,7 @@ export default function EmailAnalysis() {
     const response: Response = {
       emailId: email?.id,
       isPhishing,
-      explanationType: selectedExplanation ? selectedExplanation.type : "no_explanation", // 🔥 Aquí está la clave
+      explanationType: selectedExplanation ? selectedExplanation.type : "no_explanation", 
     };
   
     setResponses(prev => [...prev, response]);
@@ -246,7 +257,7 @@ export default function EmailAnalysis() {
       <div className="center absolute fill">
         <div className="card p-6 elevation-3 max-w-400 text-center ">
           <h4 className="mb-2">Thank you for your help!</h4>
-          <p className="mb-4">If you want to continue answering, click "Continue", otherwise click "Finish".</p>
+          <p className="mb-4">If you want to continue answering, click <b>Continue</b>, otherwise click <b>Finish</b>.</p>
 
           <div className="flex column gap-3">
             <button className="w-75 button primary" onClick={handleContinue}>
@@ -264,9 +275,8 @@ export default function EmailAnalysis() {
   return (
     <>
       <EmailAnalysisLayout
-        emailNumber={email?.id || 0}
         emailText={email?.text || "No email available"}
-        explanationText={selectedExplanation?.value || "En este caso no hay explicación. Solicitamos que mediante su conocimiento decida si es phishing o no."}
+        explanationText={selectedExplanation?.value || "In this case, no explanation is provided. We kindly ask you to decide whether it is phishing based on your own judgment."}
       />
 
       <div className="grid gap-4 margin-top-8">
