@@ -278,13 +278,11 @@ export default function EmailAnalysis() {
         emailText={email?.text || "No email available"}
         explanationText={selectedExplanation?.value || "In this case, no explanation is provided. We kindly ask you to decide whether it is phishing based on your own judgment."}
       />
-
-      <div className="grid gap-4 margin-top-8">
-        <button className="button success block" onClick={() => handleResponse(false)}>
-          Not Phishing
+      <div className="flex justify-between margin-top-8">
+        <button className="button success" onClick={() => handleResponse(false)}>
+        Not Phishing
         </button>
-
-        <button className="button error block" onClick={() => handleResponse(true)}>
+        <button className="button error" onClick={() => handleResponse(true)}>
           Phishing
         </button>
       </div>
