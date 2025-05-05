@@ -46,7 +46,7 @@ export default function EmailAnalysis() {
 
   useEffect(() => {
     const fetchMaxSampleId = async () => {
-      const response = await fetch("/api/emails/max-sample-id");
+      const response = await fetch("/llm-survey/api/emails/max-sample-id");
       const data = await response.json();
       setMaxSampleId(data.maxSampleId);
     };
@@ -92,7 +92,7 @@ export default function EmailAnalysis() {
 
 
   const fetchEmailBatch = async (sampleId: number) => {
-    const response = await fetch(`/api/emails?sampleId=${sampleId}`);
+    const response = await fetch(`/llm-survey/api/emails?sampleId=${sampleId}`);
     const data = await response.json();
 
     if (data.length > 0) {
@@ -163,7 +163,7 @@ export default function EmailAnalysis() {
 
   const handleSubmitFeedback = async () => {
     try {
-      const surveyResponse = await fetch("/api/surveys", {
+      const surveyResponse = await fetch("/llm-survey/api/surveys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -181,7 +181,7 @@ export default function EmailAnalysis() {
       const surveyId = surveyData.id;
 
       for (const response of responses) {
-        await fetch("/api/answers", {
+        await fetch("/llm-survey/api/answers", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
